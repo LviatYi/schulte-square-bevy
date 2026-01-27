@@ -1,4 +1,4 @@
-use crate::gameplay::level_progress_tracker::LevelProgressTracker;
+use crate::gameplay::level_progress_tracker::{CheckResult, LevelProgressTracker};
 use crate::gameplay::{LevelSize, START_LEVEL};
 use bevy::prelude::Resource;
 
@@ -23,16 +23,18 @@ impl LevelProgressTracker for SequentialCounter {
         self.current_level
     }
 
-    fn is_level_completed(&self) -> bool {
-        self.current_level >= self.max_level
+    fn max_level(&self) -> LevelSize {
+        self.max_level
     }
 
-    fn check_cell(&mut self, cell_index: LevelSize) -> bool {
-        if cell_index == self.current_level + 1 {
-            self.current_level += 1;
-            true
-        } else {
-            false
+    fn check_cell(&mut self, cell_index: LevelSize) -> CheckResult {
+        match self.current_level {
+            level if cell_index == level + 1 => {
+                self.current_level += 1;
+                CheckResult::Correct
+            }
+            level if cell_index <= level => CheckResult::Visited,
+            _ => CheckResult::Incorrect,
         }
     }
 }

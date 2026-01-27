@@ -1,22 +1,27 @@
 mod level_progress_tracker;
 mod sequential_counter;
 
-use crate::gameplay::level_progress_tracker::LevelProgressTracker;
+use crate::gameplay::level_progress_tracker::{CheckResult, LevelProgressTracker};
 use crate::gameplay::sequential_counter::SequentialCounter;
 use bevy::app::{App, Plugin, Startup, Update};
 use bevy::camera::Camera2d;
 use bevy::color::Color;
 use bevy::log::info;
 use bevy::prelude::{
-    AlignItems, BackgroundColor, Button, Changed, Commands, Component, Display, Interaction,
-    JustifyContent, JustifyItems, Node, Query, RepeatedGridTrack, ResMut, Text, UiRect, default,
-    percent, px,
+    AlignItems, BackgroundColor, Button, Changed, Commands, Component, Display, EaseFunction,
+    Entity, Interaction, JustifyContent, JustifyItems, Node, Query, RepeatedGridTrack, ResMut,
+    Text, UiRect, default, percent, px,
 };
+use bevy_tweening::{Tween, TweenAnim};
 use rand::prelude::SliceRandom;
 
 const DEFAULT_BUTTON_COLOR: Color = Color::srgb(0.36, 0.36, 0.36);
 const HOVERED_BUTTON_COLOR: Color = Color::srgb(0.4, 0.4, 0.4);
 const PRESSED_BUTTON_COLOR: Color = Color::srgb(0.2, 0.2, 0.2);
+const DISABLED_BUTTON_COLOR: Color = Color::srgb(0.66,0.66,0.66);
+
+const CORRECT_START_COLOR: Color = Color::srgb(0.21, 0.36, 0.22);
+const INCORRECT_START_COLOR: Color = Color::srgb(0.69, 0.32, 0.36);
 
 type LevelSize = u8;
 
@@ -102,16 +107,43 @@ fn build_schulte_view(mut commands: Commands) {
 }
 
 fn handle_cell_click(
+    mut commands: Commands,
     mut tracker: ResMut<SequentialCounter>,
-    mut q: Query<(&CellIndex, &Interaction), Changed<Interaction>>,
+    mut q: Query<(Entity, &CellIndex, &Interaction), Changed<Interaction>>,
 ) {
-    for (idx, interaction) in &mut q {
+    for (e, idx, interaction) in &mut q {
         if *interaction == Interaction::Pressed {
-            if tracker.check_cell(idx.0) {
-                info!("Correct cell clicked: {}", idx.0);
-            } else {
-                info!("Incorrect cell clicked: {}", idx.0);
-                info!("You should click: {}", tracker.current_level() + 1);
+            match tracker.check_cell(idx.0) {
+                CheckResult::Correct => {
+                    info!("Correct cell clicked: {}", idx.0);
+
+                    let tween = Tween::new(
+                        bevy_tweening::EaseMethod::EaseFunction(EaseFunction::CubicIn),
+                        std::time::Duration::from_secs_f32(0.5),
+                        bevy_tweening::lens::UiBackgroundColorLens {
+                            start: CORRECT_START_COLOR,
+                            end: DISABLED_BUTTON_COLOR,
+                        },
+                    );
+
+                    commands.entity(e).insert(TweenAnim::new(tween));
+                }
+                CheckResult::Incorrect => {
+                    info!("Incorrect cell clicked: {}", idx.0);
+                    info!("You should click: {}", tracker.current_level() + 1);
+
+                    let tween = Tween::new(
+                        bevy_tweening::EaseMethod::EaseFunction(EaseFunction::CubicIn),
+                        std::time::Duration::from_secs_f32(0.5),
+                        bevy_tweening::lens::UiBackgroundColorLens {
+                            start: INCORRECT_START_COLOR,
+                            end: DEFAULT_BUTTON_COLOR,
+                        },
+                    );
+
+                    commands.entity(e).insert(TweenAnim::new(tween));
+                }
+                _ => {}
             }
 
             if tracker.is_level_completed() {
@@ -122,9 +154,13 @@ fn handle_cell_click(
 }
 
 fn handle_cell_hover(
+    tracker: ResMut<SequentialCounter>,
     mut q: Query<(&CellIndex, &Interaction, &mut BackgroundColor), Changed<Interaction>>,
 ) {
-    for (_, interaction, mut color) in &mut q {
+    for (cell, interaction, mut color) in &mut q {
+        if tracker.visited(cell.0) {
+            continue;
+        }
         match *interaction {
             Interaction::Pressed => {
                 *color = BackgroundColor(PRESSED_BUTTON_COLOR);
