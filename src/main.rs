@@ -1,6 +1,7 @@
 mod gameplay;
 
 use crate::gameplay::SchulteViewPlugin;
+use crate::gameplay::timer::TimerViewPlugin;
 use bevy::prelude::*;
 use bevy_tweening::TweeningPlugin;
 
@@ -9,5 +10,6 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugins(TweeningPlugin)
         .add_plugins(SchulteViewPlugin)
+        .add_plugins(TimerViewPlugin)
         .run();
 }

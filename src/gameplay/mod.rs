@@ -1,5 +1,6 @@
 mod level_progress_tracker;
 mod sequential_counter;
+pub mod timer;
 
 use crate::gameplay::level_progress_tracker::{CheckResult, LevelProgressTracker};
 use crate::gameplay::sequential_counter::SequentialCounter;
@@ -18,7 +19,7 @@ use rand::prelude::SliceRandom;
 const DEFAULT_BUTTON_COLOR: Color = Color::srgb(0.36, 0.36, 0.36);
 const HOVERED_BUTTON_COLOR: Color = Color::srgb(0.4, 0.4, 0.4);
 const PRESSED_BUTTON_COLOR: Color = Color::srgb(0.2, 0.2, 0.2);
-const DISABLED_BUTTON_COLOR: Color = Color::srgb(0.66,0.66,0.66);
+const DISABLED_BUTTON_COLOR: Color = Color::srgb(0.2, 0.2, 0.2);
 
 const CORRECT_START_COLOR: Color = Color::srgb(0.21, 0.36, 0.22);
 const INCORRECT_START_COLOR: Color = Color::srgb(0.69, 0.32, 0.36);
