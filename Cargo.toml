@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 bevy = { version = "0.18.0", features = ["wayland", "debug"] }
 rand = "0.9.2"
-bevy_tweening = { path = "C:/Workspace/bevy_tweening" }
+bevy_tweening = "0.15"
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]
