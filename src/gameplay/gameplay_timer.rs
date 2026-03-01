@@ -1,8 +1,4 @@
-use crate::base::ui_host_provider_plugin::UiStartupSet;
-use bevy::prelude::{
-    App, Commands, Component, IntoScheduleConfigs, Node, Plugin, Query, Res, Text, Time, With,
-    percent,
-};
+use bevy::prelude::{Commands, Component, Node, Query, Res, Text, Time, With, percent};
 use bevy::ui::{Display, FocusPolicy};
 use bevy::utils::default;
 use std::time::{Duration, Instant};
@@ -95,24 +91,16 @@ impl GameplayTimer {
         self.last_update = at;
         self
     }
-}
 
-pub struct TimerViewPlugin;
-
-impl Plugin for TimerViewPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(
-            bevy::prelude::Startup,
-            build_timer_view.in_set(UiStartupSet::GameplayView),
-        );
-        app.add_systems(bevy::prelude::Update, update_timer_view);
+    pub fn elapsed(&self) -> Duration {
+        self.elapsed
     }
 }
 
 #[derive(Component)]
-pub struct TimerView;
+pub struct GameplayTimerView;
 
-fn build_timer_view(mut commands: Commands) {
+pub fn build_gameplay_timer_view(mut commands: Commands) {
     commands
         .spawn((
             Node {
@@ -122,14 +110,14 @@ fn build_timer_view(mut commands: Commands) {
             },
             FocusPolicy::Pass,
         ))
-        .with_child((TimerView, Text::new("")));
+        .with_child((GameplayTimerView, Text::new("")));
     commands.spawn(GameplayTimer::default());
 }
 
-fn update_timer_view(
+pub fn update_gameplay_timer_view(
     time_res: Res<Time>,
     mut timer_query: Query<&mut GameplayTimer>,
-    mut query: Query<&mut Text, With<TimerView>>,
+    mut view_query: Query<&mut Text, With<GameplayTimerView>>,
 ) {
     let elapsed = if let Ok(mut timer) = timer_query.single_mut() {
         timer.tick_duration(time_res.delta());
@@ -144,7 +132,7 @@ fn update_timer_view(
 
     let time_string = format!("{:02}:{:02}.{:03}", minutes, seconds, milliseconds);
 
-    for mut label in query.iter_mut() {
+    for mut label in view_query.iter_mut() {
         label.0 = time_string.clone();
     }
 }

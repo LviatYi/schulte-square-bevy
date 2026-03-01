@@ -1,10 +1,11 @@
-mod level_progress_tracker;
+pub mod gameplay_timer;
 mod sequential_counter;
-pub mod timer;
 
 use crate::base::ui_host_provider_plugin::{UiRootRes, UiStartupSet};
-use crate::gameplay::level_progress_tracker::{CheckResult, LevelProgressTracker};
-use crate::gameplay::sequential_counter::SequentialCounter;
+use crate::gameplay::gameplay_timer::{
+    GameplayTimer, build_gameplay_timer_view, update_gameplay_timer_view,
+};
+use crate::gameplay::sequential_counter::{CheckResult, SequentialCounter};
 use bevy::app::{App, Plugin, Startup, Update};
 use bevy::color::Color;
 use bevy::log::info;
@@ -26,8 +27,6 @@ const INCORRECT_START_COLOR: Color = Color::srgb(0.69, 0.32, 0.36);
 
 type LevelSize = u8;
 
-const START_LEVEL: LevelSize = 0;
-
 const GRID_SIZE: LevelSize = 3;
 
 pub struct SchulteViewPlugin;
@@ -36,10 +35,13 @@ impl Plugin for SchulteViewPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Startup,
-            build_schulte_view.in_set(UiStartupSet::GameplayView),
+            (build_schulte_view, build_gameplay_timer_view)
+                .chain()
+                .in_set(UiStartupSet::GameplayView),
         );
         app.add_systems(Update, handle_cell_click);
         app.add_systems(Update, handle_cell_hover);
+        app.add_systems(Update, update_gameplay_timer_view);
     }
 }
 
@@ -110,12 +112,23 @@ fn handle_cell_click(
     mut commands: Commands,
     mut tracker: ResMut<SequentialCounter>,
     mut q: Query<(Entity, &CellIndex, &Interaction), Changed<Interaction>>,
+    mut timer_q: Query<&mut GameplayTimer>,
 ) {
+    let mut timer = timer_q.single_mut();
+
     for (e, idx, interaction) in &mut q {
         if *interaction == Interaction::Pressed {
             match tracker.check_cell(idx.0) {
-                CheckResult::Correct => {
-                    info!("Correct cell clicked: {}", idx.0);
+                CheckResult::Correct { is_first } => {
+                    if is_first {
+                        info!("First cell clicked: {}", idx.0);
+
+                        if let Ok(timer) = timer.as_mut() {
+                            timer.reset().resume();
+                        }
+                    } else {
+                        info!("Correct cell clicked: {}", idx.0);
+                    }
 
                     let tween = Tween::new(
                         bevy_tweening::EaseMethod::EaseFunction(EaseFunction::CubicIn),
@@ -148,6 +161,10 @@ fn handle_cell_click(
 
             if tracker.is_level_completed() {
                 info!("Level completed!");
+                if let Ok(timer) = timer.as_mut() {
+                    timer.pause();
+                    info!("Cost time: {:.2} seconds", timer.elapsed().as_secs_f32());
+                }
             }
         }
     }
