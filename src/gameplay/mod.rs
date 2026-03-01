@@ -2,21 +2,21 @@ mod level_progress_tracker;
 mod sequential_counter;
 pub mod timer;
 
+use crate::base::ui_host_provider_plugin::{UiRootRes, UiStartupSet};
 use crate::gameplay::level_progress_tracker::{CheckResult, LevelProgressTracker};
 use crate::gameplay::sequential_counter::SequentialCounter;
 use bevy::app::{App, Plugin, Startup, Update};
-use bevy::camera::Camera2d;
 use bevy::color::Color;
 use bevy::log::info;
 use bevy::prelude::{
     AlignItems, BackgroundColor, Button, Changed, Commands, Component, Display, EaseFunction,
-    Entity, Interaction, JustifyContent, JustifyItems, Node, Query, RepeatedGridTrack, ResMut,
-    Text, UiRect, default, percent, px,
+    Entity, Interaction, IntoScheduleConfigs, JustifyContent, JustifyItems, Node, Query,
+    RepeatedGridTrack, Res, ResMut, Text, UiRect, default, percent, px,
 };
 use bevy_tweening::{Tween, TweenAnim};
 use rand::prelude::SliceRandom;
 
-const DEFAULT_BUTTON_COLOR: Color = Color::srgb(0.36, 0.36, 0.36);
+const DEFAULT_BUTTON_COLOR: Color = Color::srgb(0.85, 0.53, 0.54);
 const HOVERED_BUTTON_COLOR: Color = Color::srgb(0.4, 0.4, 0.4);
 const PRESSED_BUTTON_COLOR: Color = Color::srgb(0.2, 0.2, 0.2);
 const DISABLED_BUTTON_COLOR: Color = Color::srgb(0.2, 0.2, 0.2);
@@ -34,7 +34,10 @@ pub struct SchulteViewPlugin;
 
 impl Plugin for SchulteViewPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, build_schulte_view);
+        app.add_systems(
+            Startup,
+            build_schulte_view.in_set(UiStartupSet::GameplayView),
+        );
         app.add_systems(Update, handle_cell_click);
         app.add_systems(Update, handle_cell_hover);
     }
@@ -43,21 +46,16 @@ impl Plugin for SchulteViewPlugin {
 #[derive(Component, Debug, Copy, Clone)]
 struct CellIndex(LevelSize);
 
-fn build_schulte_view(mut commands: Commands) {
-    commands.spawn(Camera2d);
-
-    commands
-        .spawn((
-            Node {
-                display: Display::Grid,
-                width: percent(100),
-                height: percent(100),
-                align_items: AlignItems::Center,
-                justify_items: JustifyItems::Center,
-                ..default()
-            },
-            BackgroundColor(DEFAULT_BUTTON_COLOR),
-        ))
+fn build_schulte_view(mut commands: Commands, ui_root_res: Res<UiRootRes>) {
+    commands.entity(ui_root_res.ui_root).with_children(|root| {
+        root.spawn(Node {
+            display: Display::Grid,
+            width: percent(100),
+            height: percent(100),
+            align_items: AlignItems::Center,
+            justify_items: JustifyItems::Center,
+            ..default()
+        })
         .with_children(|root| {
             root.spawn((
                 Node {
@@ -103,6 +101,7 @@ fn build_schulte_view(mut commands: Commands) {
                 }
             });
         });
+    });
 
     commands.insert_resource(SequentialCounter::new(GRID_SIZE * GRID_SIZE));
 }

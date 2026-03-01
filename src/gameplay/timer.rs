@@ -1,7 +1,9 @@
+use crate::base::ui_host_provider_plugin::UiStartupSet;
 use bevy::prelude::{
-    App, Commands, Component, Node, Plugin, Query, Res, Text, Time, With, percent,
+    App, Commands, Component, IntoScheduleConfigs, Node, Plugin, Query, Res, Text, Time, With,
+    percent,
 };
-use bevy::ui::Display;
+use bevy::ui::{Display, FocusPolicy};
 use bevy::utils::default;
 use std::time::{Duration, Instant};
 
@@ -14,13 +16,13 @@ pub enum TimerState {
 }
 
 #[derive(Component, Debug, Copy, Clone)]
-pub struct Timer {
+pub struct GameplayTimer {
     state: TimerState,
     elapsed: Duration,
     last_update: Instant,
 }
 
-impl Default for Timer {
+impl Default for GameplayTimer {
     fn default() -> Self {
         Self {
             state: TimerState::Paused,
@@ -30,7 +32,7 @@ impl Default for Timer {
     }
 }
 
-impl Timer {
+impl GameplayTimer {
     pub fn resume_at(&mut self, at: Instant) -> &mut Self {
         if let TimerState::Paused = self.state {
             self.state = TimerState::Running;
@@ -99,7 +101,10 @@ pub struct TimerViewPlugin;
 
 impl Plugin for TimerViewPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(bevy::prelude::Startup, build_timer_view);
+        app.add_systems(
+            bevy::prelude::Startup,
+            build_timer_view.in_set(UiStartupSet::GameplayView),
+        );
         app.add_systems(bevy::prelude::Update, update_timer_view);
     }
 }
@@ -109,18 +114,21 @@ pub struct TimerView;
 
 fn build_timer_view(mut commands: Commands) {
     commands
-        .spawn(Node {
-            display: Display::Block,
-            height: percent(10),
-            ..default()
-        })
+        .spawn((
+            Node {
+                display: Display::Block,
+                height: percent(10),
+                ..default()
+            },
+            FocusPolicy::Pass,
+        ))
         .with_child((TimerView, Text::new("")));
-    commands.spawn(Timer::default());
+    commands.spawn(GameplayTimer::default());
 }
 
 fn update_timer_view(
     time_res: Res<Time>,
-    mut timer_query: Query<&mut Timer>,
+    mut timer_query: Query<&mut GameplayTimer>,
     mut query: Query<&mut Text, With<TimerView>>,
 ) {
     let elapsed = if let Ok(mut timer) = timer_query.single_mut() {
