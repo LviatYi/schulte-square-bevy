@@ -1,7 +1,7 @@
 pub mod gameplay_timer;
 mod sequential_counter;
 
-use crate::base::ui_host_provider_plugin::{UiRootRes, UiStartupSet};
+use crate::base::ui_host_provider_plugin::{BuiltInUiLayer, UiRootRes, UiStartupSet};
 use crate::gameplay::gameplay_timer::{
     GameplayTimer, build_gameplay_timer_view, update_gameplay_timer_view,
 };
@@ -49,61 +49,63 @@ impl Plugin for SchulteViewPlugin {
 struct CellIndex(LevelSize);
 
 fn build_schulte_view(mut commands: Commands, ui_root_res: Res<UiRootRes>) {
-    commands.entity(ui_root_res.ui_root).with_children(|root| {
-        root.spawn(Node {
-            display: Display::Grid,
-            width: percent(100),
-            height: percent(100),
-            align_items: AlignItems::Center,
-            justify_items: JustifyItems::Center,
-            ..default()
-        })
+    commands
+        .entity(ui_root_res.get_built_in_layer_node(BuiltInUiLayer::Main))
         .with_children(|root| {
-            root.spawn((
-                Node {
-                    display: Display::Grid,
-                    height: px(400),
-                    aspect_ratio: Some(1.0),
-                    grid_template_columns: vec![RepeatedGridTrack::flex(GRID_SIZE as u16, 1.0)],
-                    grid_template_rows: vec![RepeatedGridTrack::flex(GRID_SIZE as u16, 1.0)],
-                    row_gap: px(8),
-                    column_gap: px(8),
-                    padding: UiRect::all(px(8)),
-                    align_items: AlignItems::Stretch,
-                    justify_items: JustifyItems::Stretch,
-                    ..default()
-                },
-                BackgroundColor(Color::srgb(0.24, 0.24, 0.24)),
-            ))
-            .with_children(|grid| {
-                let indexes = (1..=(GRID_SIZE * GRID_SIZE)).collect::<Vec<LevelSize>>();
-                let shuffled_indexes = {
-                    let mut v = indexes.clone();
-                    let mut rng = rand::rng();
-                    v.as_mut_slice().shuffle(&mut rng);
-                    v
-                };
-                for i in 0..(GRID_SIZE * GRID_SIZE) {
-                    let cell_index = shuffled_indexes[i as usize];
-                    grid.spawn((
-                        Button,
-                        CellIndex(cell_index),
-                        Node {
-                            width: percent(100.0),
-                            height: percent(100.0),
-                            align_items: AlignItems::Center,
-                            justify_content: JustifyContent::Center,
-                            ..default()
-                        },
-                        BackgroundColor(DEFAULT_BUTTON_COLOR),
-                    ))
-                    .with_children(|btn| {
-                        btn.spawn((Text::new(format!("{}", cell_index)),));
-                    });
-                }
+            root.spawn(Node {
+                display: Display::Grid,
+                width: percent(100),
+                height: percent(100),
+                align_items: AlignItems::Center,
+                justify_items: JustifyItems::Center,
+                ..default()
+            })
+            .with_children(|root| {
+                root.spawn((
+                    Node {
+                        display: Display::Grid,
+                        height: px(400),
+                        aspect_ratio: Some(1.0),
+                        grid_template_columns: vec![RepeatedGridTrack::flex(GRID_SIZE as u16, 1.0)],
+                        grid_template_rows: vec![RepeatedGridTrack::flex(GRID_SIZE as u16, 1.0)],
+                        row_gap: px(8),
+                        column_gap: px(8),
+                        padding: UiRect::all(px(8)),
+                        align_items: AlignItems::Stretch,
+                        justify_items: JustifyItems::Stretch,
+                        ..default()
+                    },
+                    BackgroundColor(Color::srgb(0.24, 0.24, 0.24)),
+                ))
+                .with_children(|grid| {
+                    let indexes = (1..=(GRID_SIZE * GRID_SIZE)).collect::<Vec<LevelSize>>();
+                    let shuffled_indexes = {
+                        let mut v = indexes.clone();
+                        let mut rng = rand::rng();
+                        v.as_mut_slice().shuffle(&mut rng);
+                        v
+                    };
+                    for i in 0..(GRID_SIZE * GRID_SIZE) {
+                        let cell_index = shuffled_indexes[i as usize];
+                        grid.spawn((
+                            Button,
+                            CellIndex(cell_index),
+                            Node {
+                                width: percent(100.0),
+                                height: percent(100.0),
+                                align_items: AlignItems::Center,
+                                justify_content: JustifyContent::Center,
+                                ..default()
+                            },
+                            BackgroundColor(DEFAULT_BUTTON_COLOR),
+                        ))
+                        .with_children(|btn| {
+                            btn.spawn((Text::new(format!("{}", cell_index)),));
+                        });
+                    }
+                });
             });
         });
-    });
 
     commands.insert_resource(SequentialCounter::new(GRID_SIZE * GRID_SIZE));
 }

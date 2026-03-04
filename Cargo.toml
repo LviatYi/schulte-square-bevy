@@ -8,6 +8,7 @@ bevy = { version = "0.18.0", features = ["wayland", "debug"] }
 rand = "0.9.2"
 bevy_tweening = "0.15"
 bevy-inspector-egui = "0.36.0"
+strum = { version = "0.28.0", features = ["derive"] }
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]

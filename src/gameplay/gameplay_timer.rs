@@ -1,3 +1,4 @@
+use crate::base::ui_host_provider_plugin::{BuiltInUiLayer, UiRootRes};
 use bevy::prelude::{Commands, Component, Node, Query, Res, Text, Time, With, percent};
 use bevy::ui::{Display, FocusPolicy};
 use bevy::utils::default;
@@ -100,16 +101,9 @@ impl GameplayTimer {
 #[derive(Component)]
 pub struct GameplayTimerView;
 
-pub fn build_gameplay_timer_view(mut commands: Commands) {
+pub fn build_gameplay_timer_view(mut commands: Commands, ui_root_res: Res<UiRootRes>) {
     commands
-        .spawn((
-            Node {
-                display: Display::Block,
-                height: percent(10),
-                ..default()
-            },
-            FocusPolicy::Pass,
-        ))
+        .entity(ui_root_res.get_built_in_layer_node(BuiltInUiLayer::Main))
         .with_child((GameplayTimerView, Text::new("")));
     commands.spawn(GameplayTimer::default());
 }
