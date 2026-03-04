@@ -1,7 +1,5 @@
-use crate::base::ui_host_provider_plugin::{BuiltInUiLayer, UiRootRes};
-use bevy::prelude::{Commands, Component, Node, Query, Res, Text, Time, With, percent};
-use bevy::ui::{Display, FocusPolicy};
-use bevy::utils::default;
+use crate::plugin::ui_host_provider_plugin::{BuiltInUiLayer, UiRootRes};
+use bevy::prelude::{Commands, Component, Query, Res, Text, Time, With};
 use std::time::{Duration, Instant};
 
 #[derive(Default, Debug, Copy, Clone)]

@@ -1,11 +1,11 @@
 pub mod gameplay_timer;
 mod sequential_counter;
 
-use crate::base::ui_host_provider_plugin::{BuiltInUiLayer, UiRootRes, UiStartupSet};
 use crate::gameplay::gameplay_timer::{
     GameplayTimer, build_gameplay_timer_view, update_gameplay_timer_view,
 };
 use crate::gameplay::sequential_counter::{CheckResult, SequentialCounter};
+use crate::plugin::ui_host_provider_plugin::{BuiltInUiLayer, UiRootRes, UiStartupSet};
 use bevy::app::{App, Plugin, Startup, Update};
 use bevy::color::Color;
 use bevy::log::info;

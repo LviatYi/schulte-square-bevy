@@ -1,6 +1,6 @@
 use bevy::app::{App, Plugin};
 use bevy::camera::Camera2d;
-use bevy::log::{debug, info, trace};
+use bevy::log::debug;
 use bevy::prelude::Val::Percent;
 use bevy::prelude::{
     Commands, Component, ContainsEntity, Entity, IntoScheduleConfigs, Name, PositionType, Resource,

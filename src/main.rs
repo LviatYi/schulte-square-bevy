@@ -1,8 +1,8 @@
-mod base;
 mod gameplay;
+mod plugin;
 
-use crate::base::ui_host_provider_plugin::{UiHostProviderPlugin, UiStartupSet};
 use crate::gameplay::SchulteViewPlugin;
+use crate::plugin::ui_host_provider_plugin::{UiHostProviderPlugin, UiStartupSet};
 use bevy::prelude::*;
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
