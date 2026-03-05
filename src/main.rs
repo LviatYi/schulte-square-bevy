@@ -1,7 +1,7 @@
 mod gameplay;
 mod plugin;
 
-use crate::gameplay::SchulteViewPlugin;
+use crate::gameplay::SchultePlugin;
 use crate::plugin::ui_host_provider_plugin::{UiHostProviderPlugin, UiStartupSet};
 use bevy::prelude::*;
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
@@ -15,7 +15,7 @@ fn main() {
         .add_plugins(EguiPlugin::default())
         .add_plugins(WorldInspectorPlugin::default())
         .add_plugins(UiHostProviderPlugin)
-        .add_plugins(SchulteViewPlugin)
+        .add_plugins(SchultePlugin)
         .configure_sets(Startup, UiStartupSet::Bootstrap)
         .configure_sets(
             Startup,

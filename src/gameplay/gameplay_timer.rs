@@ -1,5 +1,5 @@
-use crate::plugin::ui_host_provider_plugin::{BuiltInUiLayer, UiRootRes};
-use bevy::prelude::{Commands, Component, Query, Res, Text, Time, With};
+use crate::gameplay::main_panel::SchulteMainPanel;
+use bevy::prelude::{Commands, Component, Query, Res, Single, Text, Time, With};
 use std::time::{Duration, Instant};
 
 #[derive(Default, Debug, Copy, Clone)]
@@ -99,9 +99,9 @@ impl GameplayTimer {
 #[derive(Component)]
 pub struct GameplayTimerView;
 
-pub fn build_gameplay_timer_view(mut commands: Commands, ui_root_res: Res<UiRootRes>) {
+pub fn build_gameplay_timer_view(mut commands: Commands, main_panel: Single<&SchulteMainPanel>) {
     commands
-        .entity(ui_root_res.get_built_in_layer_node(BuiltInUiLayer::Main))
+        .entity(main_panel.timer_view_slot)
         .with_child((GameplayTimerView, Text::new("")));
     commands.spawn(GameplayTimer::default());
 }
