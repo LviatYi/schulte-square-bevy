@@ -16,8 +16,8 @@ pub fn build_schulte_main_panel(mut commands: Commands, r_ui_root: Res<UiRootRes
         .spawn((Node {
             display: Display::Flex,
             width: percent(100),
-            flex_direction: Column,
             height: percent(100),
+            flex_direction: Column,
             align_items: AlignItems::Center,
             justify_items: JustifyItems::Center,
             ..default()
