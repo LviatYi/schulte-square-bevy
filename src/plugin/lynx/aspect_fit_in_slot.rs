@@ -94,6 +94,11 @@ pub fn update_max_aspect_fit_nodes(
                 continue;
             };
 
+            let aspect_ratio = fit_comp.aspect_ratio();
+            if aspect_ratio <= 0.0 {
+                continue;
+            }
+
             #[cfg(debug_assertions)]
             if children.len() > 1 && warned_slots.insert(slot_entity) {
                 warn!(
@@ -105,7 +110,7 @@ pub fn update_max_aspect_fit_nodes(
 
             pending_updates.push((
                 *child_entity,
-                fit_comp.aspect_ratio(),
+                aspect_ratio,
                 *parent_slot_computed,
             ));
         }
@@ -120,6 +125,11 @@ pub fn update_max_aspect_fit_nodes(
             continue;
         }
 
+        let aspect_ratio = fit_comp.aspect_ratio();
+        if aspect_ratio <= 0.0 {
+            continue;
+        }
+
         #[cfg(debug_assertions)]
         if let Ok(children) = children_query.get(parent.0) {
             if children.len() > 1 && warned_slots.insert(parent.0) {
@@ -131,14 +141,13 @@ pub fn update_max_aspect_fit_nodes(
             }
         }
 
-        pending_updates.push((entity, fit_comp.aspect_ratio(), *parent_slot_computed));
+        pending_updates.push((entity, aspect_ratio, *parent_slot_computed));
     }
 
     for (entity, aspect_ratio, parent_slot_computed) in pending_updates {
         let Ok(mut node) = fit_nodes.get_mut(entity) else {
             continue;
         };
-        if aspect_ratio <= 0.0 { continue; }
         let available_width = parent_slot_computed.size.x;
         let available_height = parent_slot_computed.size.y;
         apply_aspect_fit(&mut node, aspect_ratio, available_width, available_height);
